@@ -1,0 +1,5 @@
+D:\Android\GPS\app\build\intermediates\classes\debug
+D:\Android\GPS\app\build\intermediates\pre-dexed\debug\support-annotations-21.0.3-f251e272863741d6e8add4ab7ed3cbab86786b12.jar
+D:\Android\GPS\app\build\intermediates\pre-dexed\debug\internal_impl-21.0.3-194eeb80ff5605cdb9cc82ac208177f1d62d699f.jar
+D:\Android\GPS\app\build\intermediates\pre-dexed\debug\classes-cf08d5ffa7e4fd2972e47cacbe186bd0af673c7d.jar
+D:\Android\GPS\app\build\intermediates\pre-dexed\debug\classes-0eb8c2c268969379c5aee6b2ae2cfe2951d63222.jar
