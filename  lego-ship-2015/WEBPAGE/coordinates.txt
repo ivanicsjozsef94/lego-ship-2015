@@ -1,0 +1,5 @@
+tcoordx:43
+tcoordy:22
+fcoordx:12.343
+fcoordy:65.4553
+others:valami:megvalami;ezisaz:ez se semmi;legyen:meg egy
