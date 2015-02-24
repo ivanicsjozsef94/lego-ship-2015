@@ -1,0 +1,3 @@
+ccoordx:34.221
+ccoordy:23.455
+speed:

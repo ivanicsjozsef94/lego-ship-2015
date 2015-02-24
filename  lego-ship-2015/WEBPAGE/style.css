@@ -1,0 +1,17 @@
+body {
+    font-size: 1.4em;
+}
+
+form {
+    margin: auto;
+    width: 250px;
+}
+
+fieldset input {
+    width: 200px;
+}
+
+table {
+    margin: auto;
+    border: solid 1px black;
+}
