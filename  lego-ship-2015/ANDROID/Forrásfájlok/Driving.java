@@ -2,6 +2,8 @@ package com.lego.minddroid.vegleges;
 
 import android.util.Log;
 
+import com.lego.minddroid.vegleges.BTConnection.BTCommunicator;
+import com.lego.minddroid.vegleges.BTConnection.LCPMessage;
 import com.lego.minddroid.vegleges.Location.CompassTracker;
 
 /**
@@ -77,25 +79,115 @@ public class Driving {
         double angle = 0;
 
         if(!tempCoordinatesExecuted) {
-            angle = RotateDegree(tempCoordinateX,tempCoordinateY,averageCoordinateX,averageCoordinateY);
+            angle = RotateDegree(averageCoordinateX,averageCoordinateY, tempCoordinateX,tempCoordinateY);
         } else if(!finalCoordinatedExecuted) {
-            angle = RotateDegree(finalCoordinateX,finalCoordinateY,averageCoordinateX,averageCoordinateY);
+            angle = RotateDegree(averageCoordinateX,averageCoordinateY, finalCoordinateX,finalCoordinateY);
         }
+        Log.i("Loginfo: ", "angle " + angle + " degree: " + Math.abs(degree));
+        degree = Math.abs(degree);
+        int speed[] = {10,10,10};
+        if(angle > degree) {
+            double diff = angle-degree; //Mindig jobbra fordul!
+            double diff2= 360-angle+degree;
+            if(diff <= diff2) {
+                //Jobbra fordulj!
+                Log.i("Loginfo:", "Diff: " + diff + " Diff2:" + diff2 + " jobbra!");
+                speed[0] = 10;
+                speed[1] = 10;
+                if(diff < 30) {
+                    speed[2] = 9;
+                } else if(diff < 60) {
+                    speed[2] = 7;
+                } else if(diff < 90) {
+                    speed[2] = 5;
+                } else if(diff < 120) {
+                    speed[2] = 3;
+                } else if(diff < 150) {
+                    speed[2] = 2;
+                } else if(diff < 180) {
+                    speed[2] = 0;
+                }
+            } else {
+                //balra fordulj!
+                Log.i("Loginfo:", "Diff: " + diff + " Diff2:" + diff2 + " balra!");
+                speed[1] = 10;
+                speed[2] = 10;
+                if(diff2 < 30) {
+                    speed[0] = 9;
+                } else if(diff2 < 60) {
+                    speed[0] = 7;
+                } else if(diff2 < 90) {
+                    speed[0] = 5;
+                } else if(diff2 < 120) {
+                    speed[0] = 3;
+                } else if(diff2 < 150) {
+                    speed[0] = 2;
+                } else if(diff2 < 180) {
+                    speed[0] = 0;
+                }
+            }
+        } else if(angle < degree){
+            double diff2 = degree-angle;
+            double diff = 360-degree+angle;
+            if(diff <= diff2) {
+                //Jobbra fordulj!
+                Log.i("Loginfo:", "Diff: " + diff + " Diff2:" + diff2 + " jobbra!");
+                speed[0] = 10;
+                speed[1] = 10;
+                if(diff < 30) {
+                    speed[2] = 9;
+                } else if(diff < 60) {
+                    speed[2] = 7;
+                } else if(diff < 90) {
+                    speed[2] = 5;
+                } else if(diff < 120) {
+                    speed[2] = 3;
+                } else if(diff < 150) {
+                    speed[2] = 2;
+                } else if(diff < 180) {
+                    speed[2] = 0;
+                }
+            } else {
+                //balra fordulj!
+                Log.i("Loginfo:", "Diff: " + diff + " Diff2:" + diff2 + " balra!");
+                speed[1] = 10;
+                speed[2] = 10;
+                if(diff2 < 30) {
+                    speed[0] = 9;
+                } else if(diff2 < 60) {
+                    speed[0] = 7;
+                } else if(diff2 < 90) {
+                    speed[0] = 5;
+                } else if(diff2 < 120) {
+                    speed[0] = 3;
+                } else if(diff2 < 150) {
+                    speed[0] = 2;
+                } else if(diff2 < 180) {
+                    speed[0] = 0;
+                }
+            }
+        }
+        BTCommunicator.getInstance().write(LCPMessage.getMotor(speed[0],0));
+        BTCommunicator.getInstance().write(LCPMessage.getMotor(speed[1],1));
+        BTCommunicator.getInstance().write(LCPMessage.getMotor(speed[2],2));
 
-        Log.i("Driving: ", ""+angle);
-        double difference = Math.abs((angle-degree));
-        double difference2= Math.abs(360-degree+angle);
+        /*Log.i("Driving: ", ""+angle);
+        double difference = angle-degree;
+        double difference2= Math.abs(360-degree-;
 
         if(degree>=angle && difference>=180) {
             //Jobbra fordulj, még hozzá difference2 fokkal!
-            Log.i("Turning with: ", ""+difference2);
+            Log.i("Turning with: (jobbra) ", "difference:"+difference + " difference2:"+difference2);
         } else if(degree>=angle && difference<180){
             //Balra fordulj difference fokkal!
+            Log.i("Turning with: (balra) ", "difference:"+difference + " difference2:"+difference2);
         } else if(degree<angle && difference>=180) {
             //Balra fordulj difference2 fokkal!
+            Log.i("Turning with: (balra) ", "difference:"+difference + " difference2:"+difference2);
         } else if(degree<angle && difference<180) {
             //Jobbra fordulj difference fokkal!
-        }
+            Log.i("Turning with: (jobbra) ", "difference:"+difference + " difference2:"+difference2);
+        }*/
 
 
     }
@@ -119,6 +211,7 @@ public class Driving {
         //Δφ = ln( tan( latB / 2 + π / 4 ) / tan( latA / 2 + π / 4) )
         //Δlon = abs( lonA - lonB )
         //bearing :  θ = atan2( Δlon ,  Δφ )
+        Log.i("Log: ", "X1: " + x1 + "Y1: " + y1 + "X2: " + x2 + "Y2: " + y2);
         x1 = x1 / 180 * Math.PI;
         x2 = x2 / 180 * Math.PI;
         y1 = y1 / 180 * Math.PI;

@@ -311,7 +311,9 @@ public class MainActivity extends ActionBarActivity {
     public void toCallAsynchronous() {
         final Handler handler = new Handler();
         Timer timer = new Timer();
-        final Driving driving = new Driving(47.96196, 43.9525, 41,21);
+        final Driving driving = new Driving(
+                41.89, 12.492,
+                41.89, 12.492);
         TimerTask doAsynchronousTask = new TimerTask() {
             @Override
             public void run() {
@@ -330,14 +332,16 @@ public class MainActivity extends ActionBarActivity {
                                 coordinateY.getText().toString(),
                                 "2","30", "4");
                         try {
-                            driving.automatedControlling(46.96174 ,4.96155);
+                            driving.automatedControlling(
+                                    32.84267, -2.63672
+                            );
                         } catch (Exception e) {
 
                         }
                     }});
                 }
             };
-            timer.schedule(doAsynchronousTask, 0, 5000); // execute in every 5 second
+            timer.schedule(doAsynchronousTask, 0, 1000); // execute in every 5 second
 
     }
 
