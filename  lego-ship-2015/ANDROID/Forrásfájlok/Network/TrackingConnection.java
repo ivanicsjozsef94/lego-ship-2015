@@ -5,6 +5,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.lego.minddroid.vegleges.MainActivity;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,13 +41,17 @@ public class TrackingConnection extends AsyncTask<String, Void, Void> {
             final String SPEED = "speed";
             final String VOLTAGE = "voltage";
             final String COMPASS = "compass";
+            final String DISTANCE = "distance";
+            final String LOG = "log";
 
             Uri trackingUri = Uri.parse(LEGO_TRACKING_URL).buildUpon()
-                    .appendQueryParameter(LOCATION_X_PARAM,"2")
-                    .appendQueryParameter(LOCATION_Y_PARAM,"2")
+                    .appendQueryParameter(LOCATION_X_PARAM, params[0].toString())
+                    .appendQueryParameter(LOCATION_Y_PARAM, params[1].toString())
                     .appendQueryParameter(SPEED, params[2].toString())
                     .appendQueryParameter(VOLTAGE, params[3].toString())
                     .appendQueryParameter(COMPASS, params[4].toString())
+                    .appendQueryParameter(DISTANCE, params[5].toString())
+                    .appendQueryParameter(LOG, params[6].toString())
                     .build();
             //TRACKING!!!
             URL urlTracking = new URL(trackingUri.toString());
@@ -77,6 +83,7 @@ public class TrackingConnection extends AsyncTask<String, Void, Void> {
             }
         } catch (Exception e) {
             Log.e("TrackingError!", e.getMessage());
+            MainActivity.loggingString("TrackingError: " +  e.getMessage());
             return null;
         } finally {
             if(trackingConnection != null) {
