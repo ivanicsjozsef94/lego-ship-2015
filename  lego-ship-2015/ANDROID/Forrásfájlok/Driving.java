@@ -47,7 +47,8 @@ public class Driving {
     public boolean automatedControlling(Double coordinateX, Double coordinateY)
             throws IllegalArgumentException{
         if((coordinateX >= -90.0 && coordinateX <= 90.0) && (coordinateY >= -180.0 && coordinateY <= 180.0)) {
-            if(coordinateX == null || coordinateY == null) { throw new IllegalArgumentException();}
+            if(coordinateX == null || coordinateX==0 || coordinateY == null || coordinateY == 0)
+                { throw new IllegalArgumentException();}
             else {
                 if(counter < 5) { //Ha kisebb mint 5, akkor még csak adatot gyűjtünk!
                     this.coordinateX[counter] = coordinateX;
@@ -80,8 +81,10 @@ public class Driving {
 
         if(!tempCoordinatesExecuted) {
             angle = RotateDegree(averageCoordinateX,averageCoordinateY, tempCoordinateX,tempCoordinateY);
+            distanceValue = distance(averageCoordinateX,averageCoordinateY, tempCoordinateX,tempCoordinateY);
         } else if(!finalCoordinatedExecuted) {
             angle = RotateDegree(averageCoordinateX,averageCoordinateY, finalCoordinateX,finalCoordinateY);
+            distanceValue = distance(averageCoordinateX,averageCoordinateY, finalCoordinateX,finalCoordinateY);
         }
         Log.i("Loginfo: ", "angle " + angle + " degree: " + Math.abs(degree));
         degree = Math.abs(degree);
@@ -171,32 +174,21 @@ public class Driving {
         BTCommunicator.getInstance().write(LCPMessage.getMotor(speed[1],1));
         BTCommunicator.getInstance().write(LCPMessage.getMotor(speed[2],2));
 
-        /*Log.i("Driving: ", ""+angle);
-        double difference = angle-degree;
-        double difference2= Math.abs(360-degree-;
-
-        if(degree>=angle && difference>=180) {
-            //Jobbra fordulj, még hozzá difference2 fokkal!
-            Log.i("Turning with: (jobbra) ", "difference:"+difference + " difference2:"+difference2);
-        } else if(degree>=angle && difference<180){
-            //Balra fordulj difference fokkal!
-            Log.i("Turning with: (balra) ", "difference:"+difference + " difference2:"+difference2);
-        } else if(degree<angle && difference>=180) {
-            //Balra fordulj difference2 fokkal!
-            Log.i("Turning with: (balra) ", "difference:"+difference + " difference2:"+difference2);
-        } else if(degree<angle && difference<180) {
-            //Jobbra fordulj difference fokkal!
-            Log.i("Turning with: (jobbra) ", "difference:"+difference + " difference2:"+difference2);
-        }*/
-
+        MainActivity.changeMotorPercentagesTextViews(
+                Integer.toString(speed[0]*10)+"%",
+                Integer.toString(speed[1]*10)+"%",
+                Integer.toString(speed[2]*10)+"%");
 
     }
-
+    private static double distanceValue = 0;
+    public static double getDistance() {
+        return distanceValue;
+    }
     //Két pont közötti távolság
     public static double distance(double x1, double y1, double x2, double y2)
     {
         //distance (A, B) = R * arccos (sin(latA) * sin(latB) + cos(latA) * cos(latB) * cos(lonA-lonB))
-        double R = 6372.795477598;
+        double R = 6.372795477598;
         x1 = x1 / 180 * Math.PI;
         x2 = x2 / 180 * Math.PI;
         y1 = y1 / 180 * Math.PI;

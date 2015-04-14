@@ -55,6 +55,9 @@ public class MainActivity extends ActionBarActivity {
     TextView tempCoordinateY;
     TextView finalCoordinateX;
     TextView finalCoordinateY;
+    static TextView motorPercentagesA;
+    static TextView motorPercentagesB;
+    static TextView motorPercentagesC;
 
 
 
@@ -107,11 +110,13 @@ public class MainActivity extends ActionBarActivity {
         connectedNXT.setTextColor(Color.GREEN);
         BTCommunicator.getInstance().write(LCPMessage.getBatteryInfo());
     }
+    static int batteryLevelInMillis = 0;
     public static void getBatteryLevel(byte[] bytes) {
         int val1 = bytes[5];
         int val2 = (bytes[6]<<8);
-        Log.i("MainActivity:", val1 + "/" + val2);
+        //Log.i("MainActivity:", val1 + "/" + val2);
         double sum = ((((double)val2+(double)val1-5000)/4000)*100);
+        batteryLevelInMillis = val2+val1;
         sum = Math.round(sum);
         batteryLevel.setText((int)sum + "%");
         if(sum>=70) {
@@ -140,6 +145,9 @@ public class MainActivity extends ActionBarActivity {
         compassTextView=(TextView) findViewById(R.id.tv_compass);
         gpsTextView = (TextView) findViewById(R.id.tv_gps);
         batteryLevel= (TextView) findViewById(R.id.tv_battery_level);
+        motorPercentagesA = (TextView) findViewById(R.id.motor_percentages_a);
+        motorPercentagesB = (TextView) findViewById(R.id.motor_percentages_b);
+        motorPercentagesC = (TextView) findViewById(R.id.motor_percentages_c);
 
         gpsTracker = new GPSTracker(MainActivity.this, coordinateX, coordinateY);
         compassTracker = new CompassTracker(compassView, compassTextView, MainActivity.this);
@@ -167,6 +175,11 @@ public class MainActivity extends ActionBarActivity {
             networkEnabled.setText("Enabled");
             networkEnabled.setTextColor(Color.GREEN);
         }
+
+        tempCoordinateX.setText("0");
+        tempCoordinateY.setText("0");
+        finalCoordinateX.setText("0");
+        finalCoordinateY.setText("0");
     }
 
     public void setGPSenabled(boolean enabled) {
@@ -308,35 +321,44 @@ public class MainActivity extends ActionBarActivity {
             Toast.makeText(this, "Device is not paired: " + btAddress, Toast.LENGTH_LONG).show();
         }
     }
+    static int counter1 = 0;
     public void toCallAsynchronous() {
         final Handler handler = new Handler();
         Timer timer = new Timer();
+
         final Driving driving = new Driving(
-                41.89, 12.492,
-                41.89, 12.492);
+                Double.parseDouble(tempCoordinateX.getText().toString()),
+                Double.parseDouble(tempCoordinateY.getText().toString()),
+                Double.parseDouble(finalCoordinateX.getText().toString()),
+                Double.parseDouble(finalCoordinateY.getText().toString()));
+
         TimerTask doAsynchronousTask = new TimerTask() {
             @Override
             public void run() {
                 handler.post(new Runnable() {
                     public void run() {
                         try {
-                            NetworkConnection m= new NetworkConnection(
-                                    tempCoordinateX,
-                                    tempCoordinateY,
-                                    finalCoordinateX,
-                                    finalCoordinateY);
-                           m.execute();
+                            if(counter1 == 3) {
+                                NetworkConnection m = new NetworkConnection(
+                                        tempCoordinateX,
+                                        tempCoordinateY,
+                                        finalCoordinateX,
+                                        finalCoordinateY);
+                                m.execute();
+                            }
                         } catch (Exception e) { Log.e("MainActivity", e.getMessage()); }
-                        TrackingConnection n = new TrackingConnection();
-                        n.execute(coordinateX.getText().toString(),
-                                coordinateY.getText().toString(),
-                                "2","30", "4");
+                        if(counter1 == 3) {
+                            counter1 = 0;
+                            String compass = ""+Math.abs(CompassTracker.getCurrentDegree());
+                            doTrackingConnection(compass);
+                        } else { counter1++; }
                         try {
                             driving.automatedControlling(
-                                    32.84267, -2.63672
-                            );
+                                Double.parseDouble(coordinateX.getText().toString()),
+                                Double.parseDouble(coordinateY.getText().toString()));
                         } catch (Exception e) {
-
+                            Log.d("MainActivity: ", "There is no GPS connection yet!");
+                            MainActivity.loggingString("MainActivity: " + "There is no GPS connection yet!");
                         }
                     }});
                 }
@@ -345,7 +367,33 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    public void doTrackingConnection(String compass) {
+        TrackingConnection n = new TrackingConnection();
+        n.execute(
+                coordinateX.getText().toString(),
+                coordinateY.getText().toString(),
+                "2",
+                String.valueOf((double)batteryLevelInMillis/1000),
+                compass,
+                ""+Driving.getDistance(),
+                String.valueOf(Driving.getDistance()),
+                "Még nincs kész Jó Van???!!!", logString);
+        logString = "";
+        Log.i("MainActivity", ""+CompassTracker.getCurrentDegree());
+    }
+    static void changeMotorPercentagesTextViews(String a, String b, String c) {
+        motorPercentagesA.setText(a);
+        motorPercentagesB.setText(b);
+        motorPercentagesC.setText(c);
+    }
+
     public void showDeviceFounder(View v) {
         startActivity(new Intent(this, DeviceFounder.class));
+    }
+
+    private static String logString = "";
+    public static void loggingString(String tag) {
+        logString += tag;
+        logString += "\n";
     }
 }
