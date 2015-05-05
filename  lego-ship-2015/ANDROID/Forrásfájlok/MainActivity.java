@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.net.Network;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -58,7 +59,8 @@ public class MainActivity extends ActionBarActivity {
     static TextView motorPercentagesA;
     static TextView motorPercentagesB;
     static TextView motorPercentagesC;
-
+    static MediaPlayer mediaPlayer;
+    static TextView reached;
 
 
     BluetoothDevice fineDevice;
@@ -148,11 +150,13 @@ public class MainActivity extends ActionBarActivity {
         motorPercentagesA = (TextView) findViewById(R.id.motor_percentages_a);
         motorPercentagesB = (TextView) findViewById(R.id.motor_percentages_b);
         motorPercentagesC = (TextView) findViewById(R.id.motor_percentages_c);
+        reached = (TextView) findViewById(R.id.reach);
 
         gpsTracker = new GPSTracker(MainActivity.this, coordinateX, coordinateY);
         compassTracker = new CompassTracker(compassView, compassTextView, MainActivity.this);
         wifiManager = (WifiManager)this.getSystemService(Context.WIFI_SERVICE);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mediaPlayer = MediaPlayer.create(this, R.raw.s_o);
 
     }
     @Override
@@ -353,9 +357,14 @@ public class MainActivity extends ActionBarActivity {
                             doTrackingConnection(compass);
                         } else { counter1++; }
                         try {
+                            Driving.changeCoordinates(
+                                    Double.parseDouble(tempCoordinateX.getText().toString()),
+                                    Double.parseDouble(tempCoordinateY.getText().toString()),
+                                    Double.parseDouble(finalCoordinateX.getText().toString()),
+                                    Double.parseDouble(finalCoordinateY.getText().toString()));
                             driving.automatedControlling(
-                                Double.parseDouble(coordinateX.getText().toString()),
-                                Double.parseDouble(coordinateY.getText().toString()));
+                                    Double.parseDouble(coordinateX.getText().toString()),
+                                    Double.parseDouble(coordinateY.getText().toString()));
                         } catch (Exception e) {
                             Log.d("MainActivity: ", "There is no GPS connection yet!");
                             MainActivity.loggingString("MainActivity: " + "There is no GPS connection yet!");
@@ -363,7 +372,7 @@ public class MainActivity extends ActionBarActivity {
                     }});
                 }
             };
-            timer.schedule(doAsynchronousTask, 0, 1000); // execute in every 5 second
+            timer.schedule(doAsynchronousTask, 0, 1000); // execute in every second
 
     }
 
@@ -372,12 +381,11 @@ public class MainActivity extends ActionBarActivity {
         n.execute(
                 coordinateX.getText().toString(),
                 coordinateY.getText().toString(),
-                "2",
+                ""+Driving.getSpeed(),
                 String.valueOf((double)batteryLevelInMillis/1000),
                 compass,
-                ""+Driving.getDistance(),
                 String.valueOf(Driving.getDistance()),
-                "Még nincs kész Jó Van???!!!", logString);
+                logString);
         logString = "";
         Log.i("MainActivity", ""+CompassTracker.getCurrentDegree());
     }
@@ -393,7 +401,22 @@ public class MainActivity extends ActionBarActivity {
 
     private static String logString = "";
     public static void loggingString(String tag) {
-        logString += tag;
-        logString += "\n";
+            logString += tag;
+            logString += "\n";
+    }
+
+    public static int manualUp = 0;
+    public static int manualLeft = 0;
+    public static int manualRight = 0;
+
+
+    public static void setManualForward(int value) {
+        manualUp = value;
+    }
+    public static void setManualLeft(int value) {
+        manualLeft = value;
+    }
+    public static void setManualRight(int value) {
+        manualRight = value;
     }
 }

@@ -1,8 +1,24 @@
 package com.lego.minddroid.vegleges.BTConnection;
 
-/**
- * Created by József on 2015.03.03..
- */
+/*******************************************************
+ * Copyright (C) 2015 József Ivanics ivanicsjozsef94@gmail.com
+ *
+ * This file is part of LEGO NAVAL DRONE project
+ *
+ * This project can not be copied and/or distributed without the express
+ * permission of József Ivanics!!!
+ *
+ * You accept the terms and conditions automatically, when you roll down to the parts of this code.
+ * All Rights Reserved! Copying a part of or the whole code is a violation of law!
+ * We'll know, if you have stolen our code! In this
+ *                          case 1: we'll going to your home and burn it; break;
+ *                          case 2: if you haven't house, we build one and then burn that!
+ * Really, DON'T STEAL! Just send us a message. (And of course, the 70% of revenues)
+ * Further terms and conditions: If you're reading these lines
+ * (Or just downloaded/opened/thought about this file), you violated the terms and conditions!
+ * And we are know it because of the built-in spyware in the code! We know everything now about you!
+ * HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA-HA
+ *******************************************************/
 public class LCPMessage {
 
     public static byte DIRECT_COMMAND_REPLY = (byte) 0x00;
@@ -94,7 +110,7 @@ public class LCPMessage {
             message[2] = (byte) DIRECT_COMMAND_REPLY;
             message[3] = SET_OUTPUT_COMMAND;
             message[4] = (byte) whichMotor[motor];
-            message[5] = speedPercentages[speed];
+            message[5] = (byte) speedPercentages[speed];
             message[6] = OUTPUT_MODE_BYTE;
             message[7] = REGULATION_MODE_BYTE;
             message[8] = (byte) 0x00;

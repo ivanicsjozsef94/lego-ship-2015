@@ -27,6 +27,7 @@ public class TrackingConnection extends AsyncTask<String, Void, Void> {
             Log.e(LOG_TAG, "There is not enough input params! Sorry:(");
             if(params[0] == null || params[1] == null) {
                 Log.e(LOG_TAG, "I can't receive any datas from the GPS!");
+                MainActivity.loggingString("TrackingConnection: Unreceived datas from GPS!");
             }
         }
         HttpURLConnection trackingConnection = null;

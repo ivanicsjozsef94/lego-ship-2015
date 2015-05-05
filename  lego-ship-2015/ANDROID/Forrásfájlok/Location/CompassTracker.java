@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.lego.minddroid.vegleges.BTConnection.BTCommunicator;
 import com.lego.minddroid.vegleges.BTConnection.LCPMessage;
+import com.lego.minddroid.vegleges.MainActivity;
 
 /**
  * Created by József on 2015.02.12..
@@ -58,6 +59,7 @@ public class CompassTracker extends Service implements SensorEventListener {
             BTCommunicator.getInstance().write(LCPMessage.getBatteryInfo());
         } catch (Exception e) {
             Log.e("CompassTracker", e.getMessage());
+            MainActivity.loggingString("CompassTracker: Failed to request data from NXT (voltage)");
         }
         // get the angle around the z-axis rotated
         float degree = Math.round(event.values[0]);

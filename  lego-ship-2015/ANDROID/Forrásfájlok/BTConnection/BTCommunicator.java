@@ -6,6 +6,8 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.util.Log;
 
+import com.lego.minddroid.vegleges.MainActivity;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -67,6 +69,7 @@ public class BTCommunicator extends Thread {
                     "").sendToTarget();
         } catch (Exception e) {
             Log.e("BTCommunicator", e.getMessage());
+            MainActivity.loggingString("BTCommunicator: Unable to connect to NXT!");
             try {
                 BTCommunicator.getInstance().cancel();
                 handler.obtainMessage(CONNECTION_FAILED, e.getMessage
@@ -105,6 +108,7 @@ public class BTCommunicator extends Thread {
             }
         } catch (IOException e) {
             Log.e("BTCOMM", e.getMessage());
+            MainActivity.loggingString("BTCOMM: Sending data to NXT was unsuccesfully.");
         }
     }
 

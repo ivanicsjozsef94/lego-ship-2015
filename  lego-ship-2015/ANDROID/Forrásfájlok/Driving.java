@@ -1,5 +1,6 @@
 package com.lego.minddroid.vegleges;
 
+import android.media.MediaPlayer;
 import android.util.Log;
 
 import com.lego.minddroid.vegleges.BTConnection.BTCommunicator;
@@ -18,6 +19,8 @@ public class Driving {
     static double finalCoordinateX, finalCoordinateY;
     static boolean tempCoordinatesExecuted;
     static boolean finalCoordinatedExecuted;
+    static double lastDistance = 0;
+    static boolean hasStarted = false;//Elindította-e már valaha?
 
     public Driving (double tempCoordinateX, double tempCoordinateY,
                             double finalCoordinateX, double finalCoordinateY) {
@@ -34,35 +37,80 @@ public class Driving {
 
     }
 
-    public void changeCoordinates(double tempCoordinateX, double tempCoordinateY,
-                                  double finalCoordinateX, double finalCoordinateY) {
-        this.tempCoordinateX = tempCoordinateX;
-        this.tempCoordinateY = tempCoordinateY;
-        this.finalCoordinateX= finalCoordinateX;
-        this.finalCoordinateY= finalCoordinateY;
+    public static void changeCoordinates(double tempCoordinateX1, double tempCoordinateY1,
+                                  double finalCoordinateX1, double finalCoordinateY1) {
+        tempCoordinateX = tempCoordinateX1;
+        tempCoordinateY = tempCoordinateY1;
+        finalCoordinateX= finalCoordinateX1;
+        finalCoordinateY= finalCoordinateY1;
 
     }
 
     //Ha nem létezik még az adat vagy nem valódi az adat, akkor kivételt dob!
     public boolean automatedControlling(Double coordinateX, Double coordinateY)
             throws IllegalArgumentException{
-        if((coordinateX >= -90.0 && coordinateX <= 90.0) && (coordinateY >= -180.0 && coordinateY <= 180.0)) {
-            if(coordinateX == null || coordinateX==0 || coordinateY == null || coordinateY == 0)
-                { throw new IllegalArgumentException();}
-            else {
-                if(counter < 5) { //Ha kisebb mint 5, akkor még csak adatot gyűjtünk!
-                    this.coordinateX[counter] = coordinateX;
-                    this.coordinateY[counter] = coordinateY;
-                    counter++;
-                } else { //Adatok újrakalibrálása.
-                    counter = 0;
-                    recalibrating();
-                }
-            }
+        //Manual controlling
+        if(MainActivity.manualUp != 0 || MainActivity.manualLeft != 0 || MainActivity.manualRight != 0) {
+            manualControlling();
         } else {
-            throw new IllegalArgumentException();
+            if ((coordinateX >= -90.0 && coordinateX <= 90.0) && (coordinateY >= -180.0 && coordinateY <= 180.0)) {
+                if (coordinateX == null || coordinateX == 0 || coordinateY == null || coordinateY == 0) {
+                    throw new IllegalArgumentException();
+                } else {
+                    if (counter < 5) { //Ha kisebb mint 5, akkor még csak adatot gyűjtünk!
+                        this.coordinateX[counter] = coordinateX;
+                        this.coordinateY[counter] = coordinateY;
+                        counter++;
+                    } else { //Adatok újrakalibrálása.
+                        counter = 0;
+                        if (!tempCoordinatesExecuted && !finalCoordinatedExecuted) {
+                            recalibrating();
+                            tempCoordinatesExecuted = getTarget(distanceValue);
+                            MainActivity.loggingString("Driving: Temp coordinates has reached!");
+                            MainActivity.reached.setText("To temp!");
+                            hasStarted = true; //Amikor eléri a temp koordinátát, csak a kövi ciklusban induljon a zene!
+                        } else if (tempCoordinatesExecuted && !finalCoordinatedExecuted) {
+                            recalibrating();
+                            finalCoordinatedExecuted = getTarget(distanceValue);
+                            MainActivity.reached.setText("To final!");
+                            hasStarted = false;
+                            MainActivity.loggingString("Driving: Final coordinated has reached!");
+                        } else if (tempCoordinatesExecuted && finalCoordinatedExecuted) {
+                            MainActivity.loggingString("Driving: Stopping automation driving...");
+                            BTCommunicator.getInstance().write(LCPMessage.getMotor(0, 0));
+                            BTCommunicator.getInstance().write(LCPMessage.getMotor(0, 1));
+                            BTCommunicator.getInstance().write(LCPMessage.getMotor(0, 2));
+                            MainActivity.reached.setText("Reached!");
+                            MainActivity.changeMotorPercentagesTextViews(0 + "%", 0 + "%", 0 + "%");
+                        }
+                        Log.d("Driving: ", "" + tempCoordinatesExecuted + "\t" + finalCoordinatedExecuted);
+                        if (!hasStarted && tempCoordinatesExecuted && distanceValue <= 40) {
+                            hasStarted = true;
+                            MainActivity.mediaPlayer.start();
+                        }
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException();
+            }
         }
         return true;
+    }
+
+    public void manualControlling() {
+        int[] speeds = {10,10,10};
+        speeds[0] = MainActivity.manualLeft;
+        speeds[1] = MainActivity.manualUp;
+        speeds[2] = MainActivity.manualRight;
+
+        BTCommunicator.getInstance().write(LCPMessage.getMotor(speeds[0],0));
+        BTCommunicator.getInstance().write(LCPMessage.getMotor(speeds[1],1));
+        BTCommunicator.getInstance().write(LCPMessage.getMotor(speeds[2],2));
+
+        MainActivity.changeMotorPercentagesTextViews(
+                Integer.toString(speeds[0]*10)+"%",
+                Integer.toString(speeds[1]*10)+"%",
+                Integer.toString(speeds[2]*10)+"%");
     }
 
     public void recalibrating() {
@@ -180,22 +228,33 @@ public class Driving {
                 Integer.toString(speed[2]*10)+"%");
 
     }
-    private static double distanceValue = 0;
-    public static double getDistance() {
+    private static long distanceValue = 0;
+    public static long getDistance() {
         return distanceValue;
     }
+
+    private static double speed = 0;
+    public static double getSpeed() {
+        return speed;
+    }
+    public static int speed (double lastDistance, double currentDistance) {
+        double change = lastDistance-currentDistance;
+        return ((int)((change*3.6)/4)); // 4 mp, és nem méterben, hanem km-ben kérjük!
+    }
     //Két pont közötti távolság
-    public static double distance(double x1, double y1, double x2, double y2)
+    public static long distance(double x1, double y1, double x2, double y2)
     {
         //distance (A, B) = R * arccos (sin(latA) * sin(latB) + cos(latA) * cos(latB) * cos(lonA-lonB))
-        double R = 6.372795477598;
+        double R = 63727954.77598;
         x1 = x1 / 180 * Math.PI;
         x2 = x2 / 180 * Math.PI;
         y1 = y1 / 180 * Math.PI;
         y2 = y2 / 180 * Math.PI;
         double distance = (R * Math.acos(Math.sin(x1) * Math.sin(x2) + Math.cos(x1) *
                 Math.cos(x2) * Math.cos(y1 - y2)));
-        return distance;
+        speed = speed(lastDistance, distance);
+        lastDistance = distance;
+        return (long)Math.abs(distance);
     }
     //Ez fogja kiszámítani, hogy mennyit kell elfordulnia, milyen irányban kell elfordulnia,
     public static double RotateDegree(double x1, double y1, double x2, double y2)
@@ -219,7 +278,10 @@ public class Driving {
         return angl;
     }
 
-    public boolean manualControlling(int top, int left, int down, int right) {
-        return true;
+    public static boolean getTarget(double distance) {
+        if (distance <= 5.0) {
+            return true;
+        }
+        return false;
     }
 }
