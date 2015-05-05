@@ -46,23 +46,29 @@ public class NetworkConnection extends AsyncTask<Void, Void, String[]> {
         final String AMK_tCoordY = "tcoordy";
         final String AMK_fCoordX = "fcoordx";
         final String AMK_fCoordY = "fcoordy";
-
+        final String AMK_forward = "forward";
+        final String AMK_left = "left";
+        final String AMK_right = "right";
+        Log.d("NetworkConnection:", networkJsonStr);
         JSONObject networkJson = new JSONObject(networkJsonStr);
         String tCoordX;
         String tCoordY;
         String fCoordX;
         String fCoordY;
-
         tCoordX = networkJson.getString(AMK_tCoordX);
         tCoordY = networkJson.getString(AMK_tCoordY);
         fCoordX = networkJson.getString(AMK_fCoordX);
         fCoordY = networkJson.getString(AMK_fCoordY);
+        MainActivity.setManualForward(networkJson.getInt(AMK_forward));
+        MainActivity.setManualRight(networkJson.getInt(AMK_right));
+        MainActivity.setManualLeft(networkJson.getInt(AMK_left));
+
 
         String[] result = {
                 tCoordX,
                 tCoordY,
                 fCoordX,
-                fCoordY
+                fCoordY,
         };
         return result;
     }
@@ -121,6 +127,9 @@ public class NetworkConnection extends AsyncTask<Void, Void, String[]> {
 
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
+            MainActivity.loggingString("NetworkConnection: Abortive network activity " +
+                    "(failed to send data / input stream could not be created / " +
+                    "couldn't received any data within a reasonable period of time!");
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
             return null;
@@ -133,6 +142,7 @@ public class NetworkConnection extends AsyncTask<Void, Void, String[]> {
                     reader.close();
                 } catch (final IOException e) {
                     Log.e(LOG_TAG, "Error closing stream", e);
+                    MainActivity.loggingString("NetworkConnection: Error closing stream!");
                 }
             }
         }
@@ -141,6 +151,7 @@ public class NetworkConnection extends AsyncTask<Void, Void, String[]> {
             return getLocationDataFromJson(networkJsonStr);
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
+            MainActivity.loggingString("NetworkConnection: Uninterpretable datas from server!");
             e.printStackTrace();
         }
 
