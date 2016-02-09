@@ -1,0 +1,1 @@
+This repo is for the project of the Lego ship powered by soloar energy.
